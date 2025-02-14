@@ -1,0 +1,102 @@
+---
+title: "DataExploration"
+output: html_document
+date: "2025-02-14"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Exploration of raw data
+
+```{r cars}
+data <- read.csv("reduced-data.csv")
+data
+```
+
+```{r}
+num_rows <- nrow(data)
+cat("Number of rows:", num_rows)
+```
+
+```{r}
+num_cols <- ncol(data)
+cat("Number of variables:", num_cols)
+```
+
+```{r}
+# Missing values per column
+missing_per_col <- colSums(is.na(data))
+for (col in names(missing_per_col)) {
+    cat(col, ":", missing_per_col[col], "\n")
+  }
+```
+
+```{r}
+# Total missing values
+total_missing <- sum(is.na(data))
+cat("Total missing values in the dataset:", total_missing)
+```
+
+Com no tenim cap missing value, usarem una funció que ens en posi alguns de manera aleatòria per tal de tractar-los més endavant.
+
+## Afegir missing values
+
+```{r}
+
+add_missing_values <- function(data, missing_percent, exclude_column = "Target") {
+  cols_to_modify <- setdiff(names(data), exclude_column) # All columns except Target
+  
+  total_cells <- sum(sapply(data[cols_to_modify], length))
+  num_missing <- round(total_cells * missing_percent / 100)
+  
+  # Vector of all cell indices for modifiable columns
+  all_indices <- seq_len(total_cells)
+  
+  # Randomly select indices to set as NA
+  missing_indices <- sample(all_indices, num_missing, replace = FALSE)
+  
+  new_data <- data # Copy
+  
+  # Set selected cells to NA
+  current_index <- 1
+  for (col in cols_to_modify) {
+    col_length <- length(data[[col]])
+    col_indices <- current_index:(current_index + col_length - 1)
+    col_missing <- intersect(missing_indices, col_indices)
+    if (length(col_missing) > 0) {
+      new_data[[col]][col_missing - current_index + 1] <- NA
+    }
+    current_index <- current_index + col_length
+  }
+  
+  return(new_data)
+}
+
+data_mv <- add_missing_values(data, 10)
+data_mv
+```
+
+```{r}
+missing_per_col <- colSums(is.na(data_mv))
+for (col in names(missing_per_col)) {
+    cat(col, ":", missing_per_col[col], "\n")
+  }
+```
+```{r}
+# Total missing values
+total_missing2 <- sum(is.na(data_mv))
+cat("Total missing values in the dataset:", total_missing2)
+```
+
+```{r}
+total_cells <- 4424*19
+perc_NA <- total_missing2/total_cells
+perc_NA <- perc_NA * 100
+perc_NA
+```
+
+```{r}
+write.csv(data_mv, "data_withNA.csv")
+```
