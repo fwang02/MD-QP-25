@@ -1,6 +1,7 @@
 ---
 title: "DataExploration"
-output: html_document
+output:
+  pdf_document: default
 date: "2025-02-14"
 ---
 
@@ -8,11 +9,11 @@ date: "2025-02-14"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Exploration of raw data
+## Exploració de les dades
 
 ```{r cars}
-data <- read.csv("reduced-data.csv")
-data
+data <- read.csv("reduced-data.csv", sep=";")
+head(data)
 ```
 
 ```{r}
@@ -75,7 +76,7 @@ add_missing_values <- function(data, missing_percent, exclude_column = "Target")
 }
 
 data_mv <- add_missing_values(data, 10)
-data_mv
+head(data_mv)
 ```
 
 ```{r}
@@ -84,6 +85,7 @@ for (col in names(missing_per_col)) {
     cat(col, ":", missing_per_col[col], "\n")
   }
 ```
+
 ```{r}
 # Total missing values
 total_missing2 <- sum(is.na(data_mv))
