@@ -9,14 +9,11 @@
 -   DAVID GONZÁLEZ ORTEGA
 -   FEIYANG WANG
 
-------------------------------------------------------------------------
-
 ## Origen de les dades
 
-[Dades](https://archive.ics.uci.edu/dataset/697/predict+students+dropout+and+academic+success)
-
-------------------------------------------------------------------------
+[Dataset](https://archive.ics.uci.edu/dataset/697/predict+students+dropout+and+academic+success)
 
 ## Instruccions
 
-Usar `renv::restore()` para instalar las librerías necesarias.
+- `renv::restore()` para instalar las librerías necesarias.
+- `renv::snapshot()` para guardar las librerías utilizadas.

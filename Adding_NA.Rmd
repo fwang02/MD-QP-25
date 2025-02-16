@@ -100,5 +100,5 @@ perc_NA
 ```
 
 ```{r}
-write.csv(data_mv, "data_withNA.csv")
+write.csv(data_mv, "data_withNA1.csv", row.names = FALSE)
 ```
