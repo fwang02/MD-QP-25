@@ -61,4 +61,16 @@ data$Target <- factor(data$Target)
 ```{r}
 summary(data)
 ```
+```{r}
+fullVariables<-c(6, 8, 14, 15, 16, 17, 18)
+aux<-data[,fullVariables]
+dim(aux)
+names(aux)
+```
+```{r}
+par(ask=TRUE)
+auxLength<-length(aux)
+for(k in seq_len(auxLength)){boxplot(aux[,k], main=paste("Boxplot of", names(aux)[k]))}
+par(ask=FALSE)
+```
 
