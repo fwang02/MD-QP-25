@@ -67,48 +67,38 @@ numeric_cols <- sapply(data, is.numeric)
 
 for (col in names(data)[numeric_cols]) {
   boxplot(data[[col]], main=paste("Boxplot of", col))
+  #hist(data[[col]], main=paste("Histogram of", col))
+  #print(shapiro.test(data[[col]]))
 }
 ```
-
-## Normalize numeric data
+## Eliminar outliers con IQR
 
 ```{r}
-normalize_minmax <- function(x) {
-  return((x - min(x, na.rm = TRUE)) / (max(x, na.rm = TRUE) - min(x, na.rm = TRUE)))
+remove_outliers <- function(x) {
+  qnt <- quantile(x, probs=c(.25, .75), na.rm = TRUE)
+  H <- 1.5 * IQR(x, na.rm = TRUE)
+  y <- x
+  y[x < (qnt[1] - H)] <- NA
+  y[x > (qnt[2] + H)] <- NA
+  return(y)
 }
 
-data_normalized <- data
-data_normalized[,numeric_cols] <- lapply(data_normalized[,numeric_cols], normalize_minmax)
-```
 
+data_without_outliers<-apply(data[,numeric_cols], 2, function(x)remove_outliers(x))
+data_without_outliers<-na.omit(data_without_outliers)
+data_without_outliers<-as.data.frame(data_without_outliers)
+head(data_without_outliers)
+
+```
+## Normalize numeric data
 ### Boxplot after normalization
 
 ```{r}
-for (col in names(data_normalized)[numeric_cols]) {
-  boxplot(data_normalized[[col]], main=paste("Boxplot of", col))
+for (col in names(data_without_outliers)) {
+  boxplot(data_without_outliers[[col]], main=paste("Boxplot of", col))
 }
 
-summary(data_normalized[,numeric_cols])
-```
-
-## Robust normalization
-```{r}
-normalize_robust <- function(x) {
-  return((x - median(x, na.rm = TRUE)) / IQR(x, na.rm = TRUE))
-}
-
-data_normalized_robust <- data
-data_normalized_robust[,numeric_cols] <- lapply(data_normalized_robust[,numeric_cols], normalize_robust)
-```
-
-### Boxplot after robust normalization
-
-```{r}
-for (col in names(data_normalized_robust)[numeric_cols]) {
-  boxplot(data_normalized_robust[[col]], main=paste("Boxplot of", col))
-}
-
-summary(data_normalized_robust[,numeric_cols])
+summary(data_without_outliers)
 
 ```
 
