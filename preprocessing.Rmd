@@ -61,16 +61,55 @@ data$Target <- factor(data$Target)
 ```{r}
 summary(data)
 ```
+## Boxplot of numeric variables
 ```{r}
-fullVariables<-c(6, 8, 14, 15, 16, 17, 18)
-aux<-data[,fullVariables]
-dim(aux)
-names(aux)
+numeric_cols <- sapply(data, is.numeric)
+
+for (col in names(data)[numeric_cols]) {
+  boxplot(data[[col]], main=paste("Boxplot of", col))
+}
 ```
+
+## Normalize numeric data
+
 ```{r}
-par(ask=TRUE)
-auxLength<-length(aux)
-for(k in seq_len(auxLength)){boxplot(aux[,k], main=paste("Boxplot of", names(aux)[k]))}
-par(ask=FALSE)
+normalize_minmax <- function(x) {
+  return((x - min(x, na.rm = TRUE)) / (max(x, na.rm = TRUE) - min(x, na.rm = TRUE)))
+}
+
+data_normalized <- data
+data_normalized[,numeric_cols] <- lapply(data_normalized[,numeric_cols], normalize_minmax)
 ```
+
+### Boxplot after normalization
+
+```{r}
+for (col in names(data_normalized)[numeric_cols]) {
+  boxplot(data_normalized[[col]], main=paste("Boxplot of", col))
+}
+
+summary(data_normalized[,numeric_cols])
+```
+
+## Robust normalization
+```{r}
+normalize_robust <- function(x) {
+  return((x - median(x, na.rm = TRUE)) / IQR(x, na.rm = TRUE))
+}
+
+data_normalized_robust <- data
+data_normalized_robust[,numeric_cols] <- lapply(data_normalized_robust[,numeric_cols], normalize_robust)
+```
+
+### Boxplot after robust normalization
+
+```{r}
+for (col in names(data_normalized_robust)[numeric_cols]) {
+  boxplot(data_normalized_robust[[col]], main=paste("Boxplot of", col))
+}
+
+summary(data_normalized_robust[,numeric_cols])
+
+```
+
 
