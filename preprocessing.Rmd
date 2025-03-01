@@ -178,6 +178,7 @@ category_mappings <- list(
 ```
 
 ### apply the mappings
+
 ```{r}
 for (col in names(category_mappings)) {
   if (class(data[[col]]) == "integer") {
@@ -194,7 +195,9 @@ summary(data)
 
 write.csv(data, "data_categorical.csv", row.names = FALSE)
 ```
+
 ## Boxplot of numeric variables
+
 ```{r}
 numeric_cols <- sapply(data, is.numeric)
 
@@ -204,6 +207,7 @@ for (col in names(data)[numeric_cols]) {
   # print(shapiro.test(data[[col]]))
 }
 ```
+
 ## Eliminar outliers con IQR
 
 ```{r}
@@ -222,7 +226,9 @@ data_without_outliers <- na.omit(data_without_outliers)
 data_without_outliers <- as.data.frame(data_without_outliers)
 head(data_without_outliers)
 ```
+
 ## Normalize numeric data
+
 ### Boxplot after normalization
 
 ```{r}
@@ -232,5 +238,3 @@ for (col in names(data_without_outliers)) {
 
 summary(data_without_outliers)
 ```
-
-
