@@ -30,7 +30,7 @@ data_cat <- na.omit(data_cat)
 
 
 library(ggplot2)
-
+# hace todos los histogramas y los guarda en un pdf
 pdf("outputs/faceted_histograms.pdf")
 
 for (num_var in colnames(data_num)) {
