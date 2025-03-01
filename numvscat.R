@@ -1,6 +1,8 @@
 data <- read.table("data_with10NA.csv",header=T, sep=",");
 attach(data)
 
+
+# declare the categorical variables
 category_mappings <- list(
   Marital.status = list(levels = c(1,2,3,4,5,6), labels = c("single", "married", "widowed", "divorced", "facto union", "legally separated")),
   Application.order = list(levels = c(0,1,2,3,4,5,6,9), labels = c("first choice", "second choice", "third choice", "fourth choice", "fifth choice", "sixth choice", "seventh chioce","last choice")),
@@ -15,6 +17,8 @@ category_mappings <- list(
   Scholarship.holder = list(levels = c(0,1), labels = c("no", "yes"))
 )
 
+# apply the mappings
+
 for (col in names(category_mappings)) {
   if (class(data[[col]]) == "integer") {
     data[[col]] <- factor(data[[col]], levels = category_mappings[[col]]$levels, labels = category_mappings[[col]]$labels)
@@ -28,26 +32,43 @@ data_num <- na.omit(data_num)
 data_cat <- na.omit(data_cat)
 
 
+# calculating all the summaries by modality and placing them in a .txt
 
-library(ggplot2)
-# hace todos los histogramas y los guarda en un pdf
-pdf("outputs/faceted_histograms.pdf")
-
-for (num_var in colnames(data_num)) {
-  for (cat_var in colnames(data_cat)) {
-    p <- ggplot(data, aes(x = .data[[num_var]], fill = .data[[cat_var]])) +
-      geom_histogram(position = "identity", alpha = 0.5, bins = 20) +
-      facet_wrap(~ .data[[cat_var]]) +
-      labs(title = paste("Histogram of", num_var, "by", cat_var), x = num_var) +
-      theme_minimal()
+sink("outputs/numvscatsummary.txt")
+for (i in 1 : 12){
+  for(j in 1 : 7){
+    summary_df <- aggregate(data_num[,j] ~ data_cat[,i], data = data, summary)
+    cat ("Categorical variable:" ,names(data_cat[i]), " \nNumerical variable:" ,names(data_num[j]),"\n")
+    colnames(summary_df) <- c("Category", " ")
+    print(summary_df)
+    cat("------------------------------------------------------------------------------------\n")
     
-    print(p)
+  }
+}
+sink()
+
+
+
+# Identificar variables numéricas y categóricas
+num_vars <- names(data)[sapply(data, is.numeric)]
+cat_vars <- names(data)[sapply(data, is.factor) | sapply(data, is.character)]
+
+# Crear boxplots para cada variable numérica segmentados por cada variable categórica
+for (num_var in num_vars) {
+  for (cat_var in cat_vars) {
+    p <- ggplot(data, aes_string(x = cat_var, y = num_var, fill = cat_var)) +
+      geom_boxplot(alpha = 0.7) +
+      theme_minimal() +
+      labs(title = paste("Boxplot"),
+           x = cat_var, y = num_var, fill = cat_var) +
+      theme(legend.position = "bottom", axis.text.x = element_text(angle = 45, hjust = 1))
+    
+    # Guardar gráfico
+    ggsave(filename = paste0("boxplot_", num_var, "_por_", cat_var, ".png"), plot = p, width = 10, height = 6)
   }
 }
 
-dev.off()
+# Creating all the histograms and placing them in a pdf
 
 
-
-
-detach()
+detach(data)
