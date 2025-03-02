@@ -196,19 +196,7 @@ summary(data)
 write.csv(data, "data_categorical.csv", row.names = FALSE)
 ```
 
-## Boxplot of numeric variables
-
-```{r}
-numeric_cols <- sapply(data, is.numeric)
-
-for (col in names(data)[numeric_cols]) {
-  boxplot(data[[col]], main = paste("Boxplot of", col))
-  # hist(data[[col]], main=paste("Histogram of", col))
-  # print(shapiro.test(data[[col]]))
-}
-```
-
-## Eliminar outliers con IQR
+## Remove outliers
 
 ```{r}
 remove_outliers <- function(x) {
@@ -219,22 +207,14 @@ remove_outliers <- function(x) {
   y[x > (qnt[2] + H)] <- NA
   return(y)
 }
-
-
-data_without_outliers <- apply(data[, numeric_cols], 2, function(x) remove_outliers(x))
-data_without_outliers <- na.omit(data_without_outliers)
-data_without_outliers <- as.data.frame(data_without_outliers)
-head(data_without_outliers)
 ```
 
-## Normalize numeric data
-
-### Boxplot after normalization
-
 ```{r}
-for (col in names(data_without_outliers)) {
-  boxplot(data_without_outliers[[col]], main = paste("Boxplot of", col))
-}
+numeric_cols <- sapply(data, is.numeric)
+data_cleaned <- data
+data_cleaned[, numeric_cols] <- lapply(data_cleaned[, numeric_cols], remove_outliers)
+data_cleaned <- na.omit(data_cleaned)
 
-summary(data_without_outliers)
+head(data_cleaned)
+write.csv(data_cleaned, "data_cleaned.csv", row.names = FALSE)
 ```
