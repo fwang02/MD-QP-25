@@ -74,3 +74,10 @@ for(k in seq_len(auxLength)){boxplot(aux[,k], main=paste("Boxplot of", names(aux
 par(ask=FALSE)
 ```
 
+```{r}
+par(ask=TRUE)
+auxLength<-length(aux)
+for(k in seq_len(auxLength)){hist(aux[,k], main=paste("Histogram of", names(aux)[k]))}
+par(ask=FALSE)
+```
+
