@@ -251,6 +251,9 @@ summary(data_without_outliers)
 
 ## knn imputation of missing values of the numerical variables
 ```{r}
+cat("Data before imputació:\n")
+summary(data)
+
 # Identificar variables numericas amb missing values
 numeric_cols_with_na <- names(data)[numeric_cols & colSums(is.na(data)) > 0]
 
@@ -260,6 +263,7 @@ imputed_data <- knnImputation(data[, numeric_cols], k = 5)
 # Canviar els valors imputats al dataset original
 data[, numeric_cols] <- imputed_data
 
+cat("\nData after the imputació:\n")
 summary(data)
 
 colSums(is.na(data[, numeric_cols]))
@@ -268,6 +272,9 @@ colSums(is.na(data[, numeric_cols]))
 
 ## Imputation of missing values of the categorical variables
 ```{r}
+cat("Data with missing values:\n")
+colSums(is.na(data))
+
 # Identificar variables categoriques amb missing values
 categorical_cols_with_na <- names(data)[sapply(data, is.factor) & colSums(is.na(data)) > 0]
 
@@ -279,11 +286,16 @@ data[, categorical_cols_with_na] <- lapply(data[, categorical_cols_with_na], fun
 })
 
 # Verificar si queden missing values
+cat("\nData with Unknown (no missing values):\n")
 colSums(is.na(data))
 ```
 
 ## Agrupacio de variables numeriques
 ```{r}
+cat("Data with missing values:\n")
+
+head(data)
+
 # Crear las noves columnes amb percentatge de 'approved' sobre 'enrolled'
 data <- data %>%
   mutate(
@@ -303,11 +315,16 @@ data <- data %>%
   select(-`Curricular.units.1st.sem..approved.`, -`Curricular.units.1st.sem..enrolled.`, 
          -`Curricular.units.2nd.sem..approved.`, -`Curricular.units.2nd.sem..enrolled.`)
 
+cat("\nData with Unknown (no missing values):\n")
 head(data)
 
 ```
 ## reducir valores de nacionality
 ```{r}
+cat("Data with missing values:\n")
+
+unique(data$Nacionality)
+
 # Crear un diccionari de pais a continent
 pais_a_continente <- c(
   "Portuguese" = "Portuguese",  
@@ -339,43 +356,58 @@ data <- data %>%
   mutate(Nacionality = ifelse(Nacionality == "Portuguese", "Portuguese", pais_a_continente[Nacionality]))
 
 head(data)
-
+cat("\nData with Unknown (no missing values):\n")
 unique(data$Nacionality)
 ```
 
 ## agrupacio de valors de la variable previous qualification
 ```{r}
+cat("Data with missing values:\n")
+
+unique(data$Previous.qualification)
+table(data$Previous.qualification)
+
 # Agrupar las categorías en 'Previous.qualification'
 data <- data %>%
   mutate(Previous.qualification = case_when(
+    Previous.qualification %in% c("12th year of schooling - not completed", 
+                                  "11th year of schooling - not completed", 
+                                  "Basic education 3rd cycle (9th/10th/11th year) or equiv.", 
+                                  "Basic education 2nd cycle (6th/7th/8th year) or equiv.",
+                                  "10th year of schooling",
+                                  "10th year of schooling - not completed", 
+                                  "Other - 11th year of schooling") ~ "Basic Education",
+    
     Previous.qualification == "Secondary education" ~ "Secondary Education",
-    Previous.qualification == "12th year of schooling- not completed" ~ "Secondary Education",
-    Previous.qualification == "11th year of schooling- not completed" ~ "Secondary Education",
-    Previous.qualification == "10th year of schooling" ~ "Secondary Education",
-    Previous.qualification == "10th year of schooling- not completed" ~ "Secondary Education",
-    Previous.qualification == "Basic education 3rd cycle (9th/10th/11th year) or equiv." ~ "Basic Education",
-    Previous.qualification == "Basic education 2nd cycle (6th/7th/8th year) or equiv." ~ "Basic Education",
-    Previous.qualification == "Technological specialization course" ~ "Higher Education",
-    Previous.qualification == "Higher education - bachelor’s degree" ~ "Higher Education",
-    Previous.qualification == "Higher education - degree" ~ "Higher Education",
-    Previous.qualification == "Higher education - master’s" ~ "Higher Education",
-    Previous.qualification == "Higher education - doctorate" ~ "Higher Education",
-    Previous.qualification == "Higher education - degree (1st cycle)" ~ "Higher Education",
-    Previous.qualification == "Professional higher technical course" ~ "Higher Education",
-    Previous.qualification == "Higher education - master (2nd cycle)" ~ "Higher Education",
-    Previous.qualification == "Other" ~ "Other",
-    Previous.qualification == "Unknown" ~ "Unknown", 
-    TRUE ~ "Other"  
+    
+    Previous.qualification %in% c("Higher education - bachelor's degree", 
+                                  "Higher education - degree", 
+                                  "Frequency of higher education",
+                                  "Higher education - degree (1st cycle)") ~ "Higher Education (Undergraduate)",
+    
+    Previous.qualification %in% c("Higher education - master's", 
+                                  "Higher education - doctorate", 
+                                  "Higher education - master (2nd cycle)") ~ "Higher Education (Postgraduate)",
+    
+    Previous.qualification %in% c("Technological specialization course", 
+                                  "Professional higher technical course") ~ "Technological & Professional Courses",
+    
+    Previous.qualification == "Unknown" ~ "Unknown",
+
+    TRUE ~ "Other"
   ))
 
 # Verificar els valors unics en la columna 'Previous.qualification' despres de l'agrupacio
+cat("\nData with Unknown (no missing values):\n")
 unique(data$Previous.qualification)
 
-table(data$Previous.qualification)
 
 ```
 ## agrupacio de valors en la variable Martial.status
 ```{r}
+cat("Data with missing values:\n")
+
+unique(data$Marital.status)
 
 # Agrupar les categories en 'Marital.status'
 data <- data %>%
@@ -389,14 +421,18 @@ data <- data %>%
     Marital.status == "Unknown" ~ "Unknown",
     TRUE ~ Marital.status
   ))
-
+cat("\nData with Unknown (no missing values):\n")
 unique(data$Marital.status)
 
-table(data$Marital.status)
 ```
 
 ## agrupacio de valors a la variable Application.order
 ```{r}
+cat("Data with missing values:\n")
+
+
+unique(data$Application.order)
+
 # Agrupar les categories en 'Application.order'
 data <- data %>%
   mutate(Application.order = case_when(
@@ -406,15 +442,18 @@ data <- data %>%
     Application.order == "Unknown" ~ "Unknown",
     TRUE ~ "Other"
   ))
-
+cat("\nData with Unknown (no missing values):\n")
 unique(data$Application.order)
 
-table(data$Application.order)
 
 ```
 
 ## agrupacio de valors a la variable Course
 ```{r}
+cat("Data with missing values:\n")
+
+unique(data$Course)
+
 #Agrupar les categories en 'Course'
 data <- data %>%
   mutate(Course = case_when(
@@ -438,10 +477,8 @@ data <- data %>%
     Course == "Unknown" ~ "Unknown",
     TRUE ~ "Other"
   ))
-
+cat("\nData with Unknown (no missing values):\n")
 unique(data$Course)
-
-table(data$Course)
 
 ```
 
