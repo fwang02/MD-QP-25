@@ -278,7 +278,175 @@ data[, categorical_cols_with_na] <- lapply(data[, categorical_cols_with_na], fun
   as.factor(x)
 })
 
-# Verificar si quede missing values
+# Verificar si queden missing values
 colSums(is.na(data))
+```
+
+## Agrupacio de variables numeriques
+```{r}
+# Crear las noves columnes amb percentatge de 'approved' sobre 'enrolled'
+data <- data %>%
+  mutate(
+    percent_approved_1st_sem = `Curricular.units.1st.sem..approved.` / `Curricular.units.1st.sem..enrolled.`,
+    percent_approved_2nd_sem = `Curricular.units.2nd.sem..approved.` / `Curricular.units.2nd.sem..enrolled.`
+  )
+
+# Canviar els NaN per zeros
+data <- data %>%
+  mutate(
+    percent_approved_1st_sem = ifelse(is.nan(percent_approved_1st_sem), 0, percent_approved_1st_sem),
+    percent_approved_2nd_sem = ifelse(is.nan(percent_approved_2nd_sem), 0, percent_approved_2nd_sem)
+  )
+
+# Eliminar las columnas originals
+data <- data %>%
+  select(-`Curricular.units.1st.sem..approved.`, -`Curricular.units.1st.sem..enrolled.`, 
+         -`Curricular.units.2nd.sem..approved.`, -`Curricular.units.2nd.sem..enrolled.`)
+
+head(data)
+
+```
+## reducir valores de nacionality
+```{r}
+# Crear un diccionari de pais a continent
+pais_a_continente <- c(
+  "Portuguese" = "Portuguese",  
+  "German" = "European",
+  "Spanish" = "European",
+  "Italian" = "European",
+  "Dutch" = "European",
+  "English" = "European",
+  "Lithuanian" = "European",
+  "Angolan" = "African",
+  "Cape Verdean" = "African",
+  "Guinean" = "African",
+  "Mozambican" = "African",
+  "Santomean" = "African",
+  "Turkish" = "Asian",
+  "Brazilian" = "South American",
+  "Romanian" = "European",
+  "Moldova (Republic of)" = "European",
+  "Mexican" = "North American",
+  "Ukrainian" = "European",
+  "Russian" = "European",
+  "Cuban" = "North American",
+  "Colombian" = "South American",
+  "Unknown" = "Unknown"
+)
+
+# Asignar el continent a la variable 'Nacionality' segons el país
+data <- data %>%
+  mutate(Nacionality = ifelse(Nacionality == "Portuguese", "Portuguese", pais_a_continente[Nacionality]))
+
+head(data)
+
+unique(data$Nacionality)
+```
+
+## agrupacio de valors de la variable previous qualification
+```{r}
+# Agrupar las categorías en 'Previous.qualification'
+data <- data %>%
+  mutate(Previous.qualification = case_when(
+    Previous.qualification == "Secondary education" ~ "Secondary Education",
+    Previous.qualification == "12th year of schooling- not completed" ~ "Secondary Education",
+    Previous.qualification == "11th year of schooling- not completed" ~ "Secondary Education",
+    Previous.qualification == "10th year of schooling" ~ "Secondary Education",
+    Previous.qualification == "10th year of schooling- not completed" ~ "Secondary Education",
+    Previous.qualification == "Basic education 3rd cycle (9th/10th/11th year) or equiv." ~ "Basic Education",
+    Previous.qualification == "Basic education 2nd cycle (6th/7th/8th year) or equiv." ~ "Basic Education",
+    Previous.qualification == "Technological specialization course" ~ "Higher Education",
+    Previous.qualification == "Higher education - bachelor’s degree" ~ "Higher Education",
+    Previous.qualification == "Higher education - degree" ~ "Higher Education",
+    Previous.qualification == "Higher education - master’s" ~ "Higher Education",
+    Previous.qualification == "Higher education - doctorate" ~ "Higher Education",
+    Previous.qualification == "Higher education - degree (1st cycle)" ~ "Higher Education",
+    Previous.qualification == "Professional higher technical course" ~ "Higher Education",
+    Previous.qualification == "Higher education - master (2nd cycle)" ~ "Higher Education",
+    Previous.qualification == "Other" ~ "Other",
+    Previous.qualification == "Unknown" ~ "Unknown", 
+    TRUE ~ "Other"  
+  ))
+
+# Verificar els valors unics en la columna 'Previous.qualification' despres de l'agrupacio
+unique(data$Previous.qualification)
+
+table(data$Previous.qualification)
+
+```
+## agrupacio de valors en la variable Martial.status
+```{r}
+
+# Agrupar les categories en 'Marital.status'
+data <- data %>%
+  mutate(Marital.status = case_when(
+    Marital.status == "single" ~ "Not in a relationship",
+    Marital.status == "married" ~ "In a relationship",
+    Marital.status == "facto union" ~ "In a relationship",
+    Marital.status == "widowed" ~ "Not in a relationship",
+    Marital.status == "divorced" ~ "Not in a relationship",
+    Marital.status == "legally separated" ~ "Not in a relationship",
+    Marital.status == "Unknown" ~ "Unknown",
+    TRUE ~ Marital.status
+  ))
+
+unique(data$Marital.status)
+
+table(data$Marital.status)
+```
+
+## agrupacio de valors a la variable Application.order
+```{r}
+# Agrupar les categories en 'Application.order'
+data <- data %>%
+  mutate(Application.order = case_when(
+    Application.order %in% c("first choice", "second choice", "third choice") ~ "1-3 choice",
+    Application.order %in% c("fourth choice", "fifth choice", "sixth choice") ~ "4-6 choice",
+    Application.order %in% c("seventh chioce", "last choice") ~ "7-10 choice",
+    Application.order == "Unknown" ~ "Unknown",
+    TRUE ~ "Other"
+  ))
+
+unique(data$Application.order)
+
+table(data$Application.order)
+
+```
+
+## agrupacio de valors a la variable Course
+```{r}
+#Agrupar les categories en 'Course'
+data <- data %>%
+  mutate(Course = case_when(
+    Course == "Nursing" ~ "Health Sciences",
+    Course == "Veterinary Nursing" ~ "Health Sciences",
+    Course == "Oral Hygiene" ~ "Health Sciences",
+    Course == "Social Service" ~ "Health Sciences",
+    Course == "Social Service (evening attendance)" ~ "Health Sciences",
+    Course == "Management" ~ "Business & Management",
+    Course == "Management (evening attendance)" ~ "Business & Management",
+    Course == "Advertising and Marketing Management" ~ "Business & Management",
+    Course == "Journalism and Communication" ~ "Business & Management",
+    Course == "Informatics Engineering" ~ "Technology & Engineering",
+    Course == "Biofuel Production Technologies" ~ "Technology & Engineering",
+    Course == "Animation and Multimedia Design" ~ "Design & Multimedia",
+    Course == "Communication Design" ~ "Design & Multimedia",
+    Course == "Agronomy" ~ "Agriculture & Environmental",
+    Course == "Equinculture" ~ "Agriculture & Environmental",
+    Course == "Basic Education" ~ "Education & Social Sciences",
+    Course == "Tourism" ~ "Education & Social Sciences",
+    Course == "Unknown" ~ "Unknown",
+    TRUE ~ "Other"
+  ))
+
+unique(data$Course)
+
+table(data$Course)
+
+```
+
+##guardar dataset
+```{r}
+write.csv(data, "data_preprocessed.csv", row.names = FALSE)
 ```
 
