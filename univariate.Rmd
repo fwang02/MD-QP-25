@@ -1,0 +1,71 @@
+---
+title: "univariate"
+output: pdf_document
+---
+
+# Univariate analysis
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Libraries
+
+```{r}
+library(ggplot2)
+```
+
+## Load data
+
+```{r}
+data <- read.csv("data_categorical.csv", stringsAsFactors = T)
+n <- nrow(data)
+k <- ncol(data)
+```
+
+## Descriptive
+
+```{r}
+descriptiva <- function(x, name) {
+  cat(paste("Variable: ", name, "\n"))
+  if (is.numeric(x)) {
+    # Global summary
+    print(summary(x))
+
+    # Boxplot
+    p <- ggplot(data, aes(x = x)) +
+      geom_boxplot() +
+      theme_minimal() +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+      labs(title = paste("Boxplot of ", name), x = name)
+    print(p)
+
+    # Histogram
+    p <- ggplot(data, aes(x = x)) +
+      geom_histogram() +
+      theme_minimal() +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+      labs(title = paste("Histogram of ", name), x = name)
+    print(p)
+  } else if (is.factor(x)) {
+    # Frequency table
+    print(paste("Frequency table of ", table(x, dnn = name)))
+
+    # Barplot
+    p <- ggplot(data, aes(x = x)) +
+      geom_bar() +
+      theme_minimal() +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+      labs(title = paste("Barplot of ", name), x = name)
+    print(p)
+  }
+  # Change line
+  cat("\n")
+}
+```
+
+```{r}
+for (i in 1:k) {
+  descriptiva(data[, i], names(data)[i])
+}
+```
