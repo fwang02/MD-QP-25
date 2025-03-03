@@ -1,0 +1,18 @@
+---
+title: "Metadata file"
+output: 
+  pdf_document:
+    extra_dependencies: ["longtable", "array"]
+---
+
+```{r, echo = FALSE}
+# Aquí se ejecuta el código pero no se muestra en el PDF
+knitr::kable(codebook, "latex", booktabs = FALSE, longtable = TRUE, caption = "Variables Metadata table") %>%
+kable_styling(latex_options = c("hold_position", "repeat_header")) %>%
+  kable_styling(font_size = 6)%>%
+  column_spec(c(5), width = "1.5cm")%>%
+  column_spec(c(3), width = "1.25cm")%>%
+  column_spec(c(1), width = "2cm")%>%
+  column_spec(c(2,7,8), width = "1.7cm")%>%
+  column_spec(c(4, 6), width = "2.5cm")
+  
