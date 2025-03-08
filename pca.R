@@ -2,6 +2,9 @@ dd <- read.csv("data_preprocessed.csv", stringsAsFactors = T)
 library(ggplot2)
 library(dplyr)
 library(rgl)
+library(ggbiplot)
+library(RColorBrewer)
+
 
 attach(dd)
 
@@ -139,4 +142,43 @@ for (k in seq_along(dcat)) {
   )
 }
 
-detach(dd)
+# PCA Biplot
+
+X <- Phi[, 1]
+Y <- Phi[, 2]
+
+categorical_columns <- which(sapply(dd, function(x) is.factor(x) | is.character(x)))
+colors <- setNames(rainbow(length(categorical_columns)), names(dd)[categorical_columns])
+
+centroids <- do.call(rbind, lapply(names(dd)[categorical_columns], function(var) {
+  aggregate(Psi[, 1:2], by = list(Category = dd[[var]]), FUN = mean) %>%
+    mutate(Variable = var)
+}))
+
+colors <- brewer.pal(9, "Set1")[-9]
+colors <- c(colors, brewer.pal(8, "Set2")[c(1, 2, 4, 7)])
+
+ggplot() +
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = 0) +
+  geom_segment(aes(x = 0, y = 0, xend = X, yend = Y),
+    arrow = arrow(length = unit(0.07, "inches")),
+    color = "lightgray"
+  ) +
+  geom_text(aes(x = X, y = Y, label = etiq), color = "grey", size = 3) +
+  geom_text(
+    data = centroids,
+    aes(x = PC1, y = PC2, label = Category, color = Variable),
+    size = 3
+  ) +
+  scale_color_manual(values = colors) +
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+  labs(
+    title = "PCA Biplot with Categorical Variables",
+    x = "Principal Component 1",
+    y = "Principal Component 2",
+    color = "Categorical Variable"
+  )
+
+ggsave("PCA_biplot_categorical.png", width = 12, height = 6, dpi = 300, bg = "white", path = "outputs")
