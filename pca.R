@@ -1,4 +1,3 @@
-dd <- read.csv("data_preprocessed.csv", stringsAsFactors = T)
 library(ggplot2)
 library(dplyr)
 library(rgl)
@@ -7,6 +6,7 @@ library(RColorBrewer)
 
 
 attach(dd)
+dd <- read.csv("data_preprocessed.csv", stringsAsFactors = T)
 
 # set a list of numerical variables
 numeriques <- which(sapply(dd, is.numeric))
@@ -179,6 +179,7 @@ ggplot() +
     x = "Principal Component 1",
     y = "Principal Component 2",
     color = "Categorical Variable"
-  )
+  ) +
+  coord_cartesian(xlim = c(-0.4, 0.4), ylim = c(-0.4, 0.4))
 
-ggsave("PCA_biplot_categorical.png", width = 12, height = 6, dpi = 300, bg = "white", path = "outputs")
+ggsave("PCA_biplot_categorical_zoom.png", width = 12, height = 6, dpi = 300, bg = "white", path = "outputs")
