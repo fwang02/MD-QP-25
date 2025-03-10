@@ -1,0 +1,23 @@
+---
+title: "bivariant"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Bivariant analysis
+
+## Read data
+
+```{r}
+data <- read.csv("data_with10NA.csv")
+```
+
+## Numeric vs. Numeric
+
+```{r}
+numeric_cols <- sapply(data, is.numeric)
+numeric_data <- data[, numeric_cols]
+```

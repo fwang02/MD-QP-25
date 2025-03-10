@@ -5,7 +5,7 @@ library(ggbiplot)
 library(RColorBrewer)
 
 
-attach(dd)
+# attach(dd)
 dd <- read.csv("data_preprocessed.csv", stringsAsFactors = T)
 
 # set a list of numerical variables
@@ -45,7 +45,7 @@ attributes(pc1)
 pc1$rotation
 
 # STORAGE OF THE EIGENVALUES, EIGENVECTORS AND PROJECTIONS IN THE 3 DIMENSIONS
-View(pc1$x)
+# View(pc1$x)
 dim(pc1$x)
 dim(dcon)
 dcon[2000, ]
@@ -61,8 +61,11 @@ ze <- rep(0, length(etiq))
 
 # PLOT OF INDIVIDUALS and Projection of variables
 Phi <- cor(dcon, Psi)
-View(Phi)
+# View(Phi)
 k <- 1
+
+# Create a new directory to save the plots
+dir.create("outputs/projection_of_variables", showWarnings = FALSE, recursive = TRUE)
 
 for (i in 1:2) {
   k <- k + 1
@@ -70,7 +73,7 @@ for (i in 1:2) {
     # eje1<-i
     # eje2<-j
 
-    png(filename = paste0("Individuals", i, " vs ", j, ".png"), width = 1000, height = 600)
+    png(filename = file.path("outputs/projection_of_variables", paste0("Individuals", i, " vs ", j, ".png")), width = 1000, height = 600)
     p <- plot(Psi[, i], Psi[, j], type = "n")
     text(Psi[, i], Psi[, j], labels = iden, cex = 0.5)
     axis(side = 1, pos = 0, labels = F, col = "cyan")
@@ -83,7 +86,7 @@ for (i in 1:2) {
     X <- Phi[, i]
     Y <- Phi[, j]
 
-    png(filename = paste0("Projection_of_variables", i, " vs ", j, ".png"), width = 1000, height = 600)
+    png(filename = file.path("outputs/projection_of_variables", paste0("Projection_of_variables", i, " vs ", j, ".png")), width = 1000, height = 600)
     p1 <- plot(Psi[, i], Psi[, j], type = "n", xlim = c(min(X, 0), max(X, 0)), ylim = c(-1, 1))
     axis(side = 1, pos = 0, labels = F)
     axis(side = 3, pos = 0, labels = F)
@@ -105,8 +108,7 @@ categoriques <- which(sapply(dd, is.factor))
 categoriques
 dcat <- dd[, categoriques]
 
-# Create a new directory to save the plots
-dir.create("outputs", showWarnings = FALSE, recursive = TRUE)
+
 
 # Plot the PCA projection for each qualitative variable
 for (k in seq_along(dcat)) {
@@ -138,7 +140,7 @@ for (k in seq_along(dcat)) {
   ggsave(
     filename = paste0("PCA_projection_", colnames(dcat)[k], ".png"),
     plot = p, width = 10, height = 6, dpi = 600, bg = "white",
-    path = "outputs"
+    path = "outputs/pca_categorical"
   )
 }
 
@@ -179,7 +181,31 @@ ggplot() +
     x = "Principal Component 1",
     y = "Principal Component 2",
     color = "Categorical Variable"
-  ) +
-  coord_cartesian(xlim = c(-0.4, 0.4), ylim = c(-0.4, 0.4))
+  )
 
-ggsave("PCA_biplot_categorical_zoom.png", width = 12, height = 6, dpi = 300, bg = "white", path = "outputs")
+ggsave("PCA_biplot_categorical.png", width = 12, height = 6, dpi = 300, bg = "white", path = "outputs/biplots")
+
+ggplot() +
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = 0) +
+  geom_segment(aes(x = 0, y = 0, xend = X, yend = Y),
+    arrow = arrow(length = unit(0.07, "inches")),
+    color = "lightgray"
+  ) +
+  geom_text(aes(x = X, y = Y, label = etiq), color = "grey", size = 3) +
+  geom_text(
+    data = centroids,
+    aes(x = PC1, y = PC2, label = Category, color = Variable),
+    size = 3
+  ) +
+  scale_color_manual(values = colors) +
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+  labs(
+    title = "PCA Biplot with Categorical Variables",
+    x = "Principal Component 1",
+    y = "Principal Component 2",
+    color = "Categorical Variable"
+  ) +
+  coord_cartesian(xlim = c(-0.2, 0.2), ylim = c(-0.2, 0.2))
+ggsave("PCA_biplot_categorical_zoom.png", width = 12, height = 6, dpi = 300, bg = "white", path = "outputs/biplots")

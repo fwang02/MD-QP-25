@@ -1,4 +1,4 @@
----
+0---
 title: "preprocessing"
 output: pdf_document
 date: "`r Sys.Date()`"
@@ -6,6 +6,11 @@ date: "`r Sys.Date()`"
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(dplyr)
+library(DMwR2)
 ```
 
 # Preprocessing
@@ -187,40 +192,12 @@ for (col in names(category_mappings)) {
   }
 }
 ```
-
-### Export the data
-
+## knn imputation of missing values of the numerical variables
 ```{r}
+cat("Data before imputation:\n")
 summary(data)
 
-write.csv(data, "data_categorical.csv", row.names = FALSE)
-```
-
-## Eliminar outliers con IQR
-
-```{r}
-remove_outliers <- function(x) {
-  qnt <- quantile(x, probs = c(.25, .75), na.rm = TRUE)
-  H <- 1.5 * IQR(x, na.rm = TRUE)
-  y <- x
-  y[x < (qnt[1] - H)] <- NA
-  y[x > (qnt[2] + H)] <- NA
-  return(y)
-}
-
-
-data_without_outliers <- apply(data[, numeric_cols], 2, function(x) remove_outliers(x))
-data_without_outliers <- na.omit(data_without_outliers)
-data_without_outliers <- as.data.frame(data_without_outliers)
-head(data_without_outliers)
-```
-
-## Knn imputation of missing values of the numerical variables
-
-```{r}
-cat("Data before imputació:\n")
-summary(data)
-
+numeric_cols <- sapply(data, is.numeric)
 # Identificar variables numericas amb missing values
 numeric_cols_with_na <- names(data)[numeric_cols & colSums(is.na(data)) > 0]
 
@@ -239,7 +216,7 @@ colSums(is.na(data[, numeric_cols]))
 ## Imputation of missing values of the categorical variables
 ```{r}
 cat("Data with missing values:\n")
-summary(data)
+colSums(is.na(data))
 
 # Identificar variables categoriques amb missing values
 categorical_cols_with_na <- names(data)[sapply(data, is.factor) & colSums(is.na(data)) > 0]
@@ -253,14 +230,14 @@ data[, categorical_cols_with_na] <- lapply(data[, categorical_cols_with_na], fun
 
 # Verificar si queden missing values
 cat("\nData with Unknown (no missing values):\n")
-summary(data)
+colSums(is.na(data))
 ```
 
 ## Agrupacio de variables numeriques
 ```{r}
-cat("Data before grouping:\n")
+cat("Data with missing values:\n")
 
-head(data)
+summary(data)
 
 # Crear las noves columnes amb percentatge de 'approved' sobre 'enrolled'
 data <- data %>%
@@ -279,24 +256,23 @@ data <- data %>%
 # Canviar valors > 1, per = 1
 data <- data %>%
   mutate(
-    percent_approved_1st_sem = ifelse(is.nan(percent_approved_1st_sem), 0, percent_approved_1st_sem),
-    percent_approved_2nd_sem = ifelse(is.nan(percent_approved_2nd_sem), 0, percent_approved_2nd_sem)
+    percent_approved_1st_sem = ifelse(percent_approved_1st_sem > 1, 1, percent_approved_1st_sem),
+    percent_approved_2nd_sem = ifelse(percent_approved_2nd_sem > 1, 1, percent_approved_2nd_sem)
   )
 
 # Eliminar las columnas originals
 data <- data %>%
-  mutate(
-    percent_approved_1st_sem = pmin(percent_approved_1st_sem, 1),
-    percent_approved_2nd_sem = pmin(percent_approved_2nd_sem, 1)
+  select(
+    -`Curricular.units.1st.sem..approved.`, -`Curricular.units.1st.sem..enrolled.`,
+    -`Curricular.units.2nd.sem..approved.`, -`Curricular.units.2nd.sem..enrolled.`
   )
 
-cat("\nData after grouping:\n")
-head(data)
+cat("\nData with Unknown (no missing values):\n")
 summary(data)
 ```
 ## reducir valores de nacionality
 ```{r}
-cat("Data before grouping:\n")
+cat("Data with missing values:\n")
 
 unique(data$Nacionality)
 
@@ -330,13 +306,14 @@ pais_a_continente <- c(
 data <- data %>%
   mutate(Nacionality = ifelse(Nacionality == "Portuguese", "Portuguese", pais_a_continente[Nacionality]))
 
-cat("\nData after grouping:\n")
+head(data)
+cat("\nData with Unknown (no missing values):\n")
 unique(data$Nacionality)
 ```
 
 ## agrupacio de valors de la variable previous qualification
 ```{r}
-cat("Data before grouping:\n")
+cat("Data with missing values:\n")
 
 unique(data$Previous.qualification)
 table(data$Previous.qualification)
@@ -374,12 +351,12 @@ data <- data %>%
   ))
 
 # Verificar els valors unics en la columna 'Previous.qualification' despres de l'agrupacio
-cat("\nData after grouping:\n")
+cat("\nData with Unknown (no missing values):\n")
 unique(data$Previous.qualification)
 ```
 ## agrupacio de valors en la variable Martial.status
 ```{r}
-cat("Data before grouping:\n")
+cat("Data with missing values:\n")
 
 unique(data$Marital.status)
 
@@ -395,13 +372,13 @@ data <- data %>%
     Marital.status == "Unknown" ~ "Unknown",
     TRUE ~ Marital.status
   ))
-cat("\nData after grouping:\n")
+cat("\nData with Unknown (no missing values):\n")
 unique(data$Marital.status)
 ```
 
 ## agrupacio de valors a la variable Application.order
 ```{r}
-cat("Data before grouping:\n")
+cat("Data with missing values:\n")
 
 
 unique(data$Application.order)
@@ -415,41 +392,44 @@ data <- data %>%
     Application.order == "Unknown" ~ "Unknown",
     TRUE ~ "Other"
   ))
-cat("\nData after grouping:\n")
+cat("\nData with Unknown (no missing values):\n")
 unique(data$Application.order)
 ```
 
 ## agrupacio de valors a la variable Course
 ```{r}
-cat("Data before grouping:\n")
+cat("Data with missing values:\n")
 
 unique(data$Course)
 
 # Agrupar les categories en 'Course'
 data <- data %>%
   mutate(Course = case_when(
-    Course %in% c(
-      "Nursing", "Veterinary Nursing", "Oral Hygiene",
-      "Social Service", "Social Service (evening attendance)"
-    ) ~ "Health Sci",
-    Course %in% c(
-      "Management", "Management (evening attendance)",
-      "Advertising and Marketing Management",
-      "Journalism and Communication"
-    ) ~ "Business & Mgmt",
-    Course %in% c("Informatics Engineering", "Biofuel Production Technologies") ~ "Tech & Eng",
-    Course %in% c("Animation and Multimedia Design", "Communication Design") ~ "Design & Media",
-    Course %in% c("Agronomy", "Equinculture") ~ "Agri & Env",
-    Course %in% c("Basic Education", "Tourism") ~ "Edu & SocSci",
+    Course == "Nursing" ~ "Health Sci",
+    Course == "Veterinary Nursing" ~ "Health Sci",
+    Course == "Oral Hygiene" ~ "Health Sci",
+    Course == "Social Service" ~ "Health Sci",
+    Course == "Social Service (evening attendance)" ~ "Health Sci",
+    Course == "Management" ~ "Business & Mgmt",
+    Course == "Management (evening attendance)" ~ "Business & Mgmt",
+    Course == "Advertising and Marketing Management" ~ "Business & Mgmt",
+    Course == "Journalism and Communication" ~ "Business & Mgmt",
+    Course == "Informatics Engineering" ~ "Tech & Eng",
+    Course == "Biofuel Production Technologies" ~ "Tech & Eng",
+    Course == "Animation and Multimedia Design" ~ "Design & Media",
+    Course == "Communication Design" ~ "Design & Media",
+    Course == "Agronomy" ~ "Agri & Env",
+    Course == "Equinculture" ~ "Agri & Env",
+    Course == "Basic Education" ~ "Edu & SocSci",
+    Course == "Tourism" ~ "Edu & SocSci",
     Course == "Unknown" ~ "Unknown",
     TRUE ~ "Other"
   ))
-cat("\nData after grouping:\n")
+cat("\nData with Unknown (no missing values):\n")
 unique(data$Course)
 ```
 
-## Exportar dataset
+##guardar dataset
 ```{r}
 write.csv(data, "data_preprocessed.csv", row.names = FALSE)
 ```
-
