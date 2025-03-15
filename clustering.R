@@ -69,9 +69,9 @@ plot(cdg[, 1], cdg[, 5])
 
 # compare numerical variables
 for (i in 1:length(numeriques)) {
-  for (j in i + 1:length(numeriques)) {
+  for (j in i:length(numeriques)) {
     if (i != j) { # Avoid self-pairing
-      p <- ggplot(dcon, aes(x = dcon[, 1], y = dcon[, 2], color = as.factor(c1))) +
+      p <- ggplot(dcon, aes(x = dcon[, i], y = dcon[, j], color = as.factor(c1))) +
         geom_point(size = 1) +
         labs(
           title = "Clustering of data in 7 classes",
