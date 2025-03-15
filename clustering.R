@@ -72,7 +72,7 @@ for (i in 1:length(numeriques)) {
   for (j in i:length(numeriques)) {
     if (i != j) { # Avoid self-pairing
       p <- ggplot(dcon, aes(x = dcon[, i], y = dcon[, j], color = as.factor(c1))) +
-        geom_point(size = 1) +
+        geom_point(size = 2) +
         labs(
           title = "Clustering of data in 7 classes",
           x = names(dcon)[i],
@@ -80,10 +80,25 @@ for (i in 1:length(numeriques)) {
           color = "Class"
         ) +
         scale_color_brewer(palette = "Set1") +
-        theme_minimal(base_size = 8) +
-        theme(legend.position = "bottom")
+        theme_minimal()
 
-      ggsave(paste0("outputs/clustering/numvsnum/", names(dcon)[i], "_vs_", names(dcon)[j], ".png"), bg = "white", dpi = 300)
+      ggsave(paste0("outputs/clustering/numvsnum/", names(dcon)[i], "_vs_", names(dcon)[j], ".png"), bg = "white", dpi = 300, width = 10, height = 6)
     }
   }
+}
+
+
+for (i in 1:length(numeriques)) {
+  # Boxplot
+  p <- ggplot(dcon, aes(x = as.factor(c1), y = dcon[, i], fill = as.factor(c1))) +
+    geom_boxplot(alpha = 0.7) +
+    labs(
+      title = paste("Boxplot of ", names(dcon)[i], " by cluster"),
+      x = "Class",
+      y = names(dcon)[i],
+      fill = "Class"
+    ) +
+    theme_minimal() +
+    scale_fill_brewer(palette = "Set2")
+  ggsave(paste0("outputs/clustering/boxplots/", names(dcon)[i], "_by_cluster.png"), plot = p, bg = "white", dpi = 300, width = 10, height = 6)
 }
