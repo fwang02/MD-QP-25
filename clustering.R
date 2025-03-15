@@ -1,5 +1,6 @@
 library(ggplot2)
 library(ggdendro)
+library(cluster)
 
 dd <- read.csv("data_preprocessed.csv", stringsAsFactors = T)
 
@@ -18,7 +19,7 @@ sse <- sapply(1:10, function(k) {
 plot(1:10, sse, type = "b", pch = 19, frame = FALSE, xlab = "Number of clusters K", ylab = "SSE")
 
 # K-means clustering
-k <- 7
+k <- 4
 k1 <- kmeans(dcon, k)
 
 print(k1)
@@ -30,6 +31,21 @@ k1$size
 k1$withinss
 
 k1$centers
+
+# LETS COMPUTE THE DECOMPOSITION OF INERTIA
+
+Bss <- sum(rowSums(k1$centers^2)*k1$size)
+Bss
+Wss <- sum(k1$withinss)
+Wss
+Tss <- k1$totss
+Tss
+
+Bss+Wss
+
+Ib1 <- 100*Bss/(Bss+Wss)
+Ib1
+
 
 centers_df <- as.data.frame(k1$centers)
 centers_df$cluster <- rownames(centers_df)
@@ -60,8 +76,8 @@ h1 <- hclust(dist_matrix, method = "ward.D2")
 ggdendrogram(h1, rotate = T)
 ggsave("outputs/clustering/hierarchical_clustering_all.png")
 
-# Cut the dendrogram
-c1 <- cutree(h1, k = 7)
+# Cut the dendogram
+c1 <- cutree(h1, k = 4)
 
 cdg <- aggregate(dcon, by = list(cluster = c1), FUN = mean)
 
@@ -102,3 +118,4 @@ for (i in 1:length(numeriques)) {
     scale_fill_brewer(palette = "Set2")
   ggsave(paste0("outputs/clustering/boxplots/", names(dcon)[i], "_by_cluster.png"), plot = p, bg = "white", dpi = 300, width = 10, height = 6)
 }
+
