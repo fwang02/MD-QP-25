@@ -8,7 +8,7 @@ dd <- read.csv("data_preprocessed.csv", stringsAsFactors = T)
 numeriques <- which(sapply(dd, is.numeric))
 numeriques
 
-##dcon <- dd[, numeriques]
+dcon <- dd[, numeriques]
 
 # KMEANS CLUSTERING
 set.seed(123)
@@ -82,6 +82,11 @@ ggsave("outputs/clustering/hierarchical_clustering_all.png")
 # Cut the dendogram
 c1 <- cutree(h1, k = 4)
 
+dd$cluster <- c1
+g1 <- dd[dd$cluster == 1, ]
+g2 <- dd[dd$cluster == 2, ]
+g3 <- dd[dd$cluster == 3, ]
+g4 <- dd[dd$cluster == 4, ]
 cdg <- aggregate(dcon, by = list(cluster = c1), FUN = mean)
 
 plot(cdg[, 1], cdg[, 5])
@@ -122,7 +127,8 @@ for (i in 1:length(numeriques)) {
   ggsave(paste0("outputs/clustering/boxplots/", names(dcon)[i], "_by_cluster.png"), plot = p, bg = "white", dpi = 300, width = 10, height = 6)
 }
 
-#tests
+#Tests 
+#ANOVA
 anova_results <- lapply(names(dcon), function(var) {
   formula <- as.formula(paste(var, "~ c1"))  
   anova_test <- aov(formula, data = dcon)  
@@ -139,8 +145,21 @@ p_values <- sort(p_values)
 print(p_values)
 
 
+#Kruskal-Wallis Test
 for (var in names(dcon)) {
   kruskal_result <- kruskal.test(dcon[[var]] ~ as.factor(c1))
   print(paste("Variable:", var))
   print(kruskal_result)
+}
+
+
+#chi-quadrat
+cat_vars <- which(sapply(dd, is.factor))  
+
+for (var in names(dd)[cat_vars]) {
+  tabla <- table(dd[[var]], as.factor(c1))  
+  chi_result <- chisq.test(tabla)  
+  
+  print(paste("Variable categòrica:", var))
+  print(chi_result)
 }
