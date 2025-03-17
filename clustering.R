@@ -8,7 +8,7 @@ dd <- read.csv("data_preprocessed.csv", stringsAsFactors = T)
 numeriques <- which(sapply(dd, is.numeric))
 numeriques
 
-dcon <- dd[, numeriques]
+##dcon <- dd[, numeriques]
 
 # KMEANS CLUSTERING
 set.seed(123)
@@ -70,8 +70,11 @@ h1 <- hclust(dist_matrix, method = "ward.D2")
 ggdendrogram(h1, rotate = T)
 ggsave("outputs/clustering/hierarchical_clustering.png")
 
-dist_matrix <- dist(dcon)
-h1 <- hclust(dist_matrix, method = "ward.D2")
+
+library(cluster)
+dist_matrix <- daisy(dd, metric = "gower", stand=TRUE)
+distMatrix<-dist_matrix^2
+h1 <- hclust(distMatrix, method = "ward.D2")
 
 ggdendrogram(h1, rotate = T)
 ggsave("outputs/clustering/hierarchical_clustering_all.png")
@@ -119,3 +122,25 @@ for (i in 1:length(numeriques)) {
   ggsave(paste0("outputs/clustering/boxplots/", names(dcon)[i], "_by_cluster.png"), plot = p, bg = "white", dpi = 300, width = 10, height = 6)
 }
 
+#tests
+anova_results <- lapply(names(dcon), function(var) {
+  formula <- as.formula(paste(var, "~ c1"))  
+  anova_test <- aov(formula, data = dcon)  
+  summary(anova_test) 
+})
+
+p_values <- sapply(names(dcon), function(var) {
+  formula <- as.formula(paste(var, "~ c1"))
+  anova_test <- aov(formula, data = dcon)
+  summary(anova_test)[[1]][["Pr(>F)"]][1]  
+})
+
+p_values <- sort(p_values)
+print(p_values)
+
+
+for (var in names(dcon)) {
+  kruskal_result <- kruskal.test(dcon[[var]] ~ as.factor(c1))
+  print(paste("Variable:", var))
+  print(kruskal_result)
+}
